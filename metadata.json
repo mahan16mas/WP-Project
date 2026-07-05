@@ -1,0 +1,6 @@
+{
+  "name": "Spotify-Like Music Player",
+  "description": "A responsive Spotify-like frontend player with multi-role identity switching, playlist management, tier restrictions, real audio streaming, and an admin suite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

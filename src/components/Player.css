@@ -1,0 +1,112 @@
+/* Fixed Bottom Player Bar Desktop Layout Styles */
+.layout-sticky-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px; /* 6rem / h-24 equivalent */
+  background-color: #121214;
+  border-top: 1px solid #242427;
+  z-index: 49;
+}
+
+/* Custom Styled Progress Range Inputs */
+.player-range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #3f3f46;
+  border-radius: 9999px;
+  height: 4px;
+  outline: none;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.player-range-input::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+
+.player-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #10b981; /* emerald-500 */
+  cursor: pointer;
+  margin-top: -4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.player-range-input:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+  background: #34d399; /* emerald-400 */
+}
+
+/* Spinning Disc Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+.animate-spin-paused {
+  animation-play-state: paused;
+}
+
+/* Mobile Player Transformations */
+@media (max-width: 767px) {
+  /* On mobile, collapse standard fixed bar elements or restructure */
+  .desktop-player-only {
+    display: none !important;
+  }
+  
+  .mobile-player-bar-minimal {
+    display: flex !important;
+    height: 64px; /* compact */
+    align-items: center;
+    justify-content: space-between;
+    background-color: #18181b;
+    border-top: 1px solid #27272a;
+    padding: 0 16px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 49;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-player-bar-minimal {
+    display: none !important;
+  }
+}
+
+/* Fade In / Out & Sliding Transitions */
+.lyrics-scroll-block {
+  max-height: 250px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.lyrics-scroll-block::-webkit-scrollbar {
+  display: none;
+}
+
+.lyrics-line-active {
+  color: #10b981;
+  font-weight: 700;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
