@@ -312,8 +312,8 @@ export const HomePageDashboard: React.FC = () => {
       </div>
 
       {/* Exclusive "Early Access" Module - Strictly visible ONLY for GOLD tier users */}
-      {currentUser.tier === 'gold' ? (
-        <div className="early-access-gold-module flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative">
+      {currentUser.tier === 'gold' && (
+        <div className="early-access-gold-module flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative mt-6">
           <div className="flex items-start gap-4 z-10">
             <div className="gold-crown-icon-badge shrink-0">
               <Crown className="w-7 h-7" />
@@ -321,7 +321,7 @@ export const HomePageDashboard: React.FC = () => {
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <span className="bg-amber-500/20 text-amber-400 text-[9px] font-bold font-mono tracking-widest uppercase px-2 py-0.5 rounded border border-amber-500/30">
-                  Exclusive Gold Access
+                  Early Access to New Tracks
                 </span>
                 <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-ping" />
               </div>
@@ -371,20 +371,6 @@ export const HomePageDashboard: React.FC = () => {
               <span>Stream Lossless Master</span>
             </button>
           </div>
-        </div>
-      ) : (
-        <div className="p-6 bg-zinc-950/40 rounded-2xl border border-zinc-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-          <div className="space-y-1 text-center sm:text-left">
-            <h4 className="text-sm font-bold text-zinc-400">Unlock the Gold Early Access Studio</h4>
-            <p className="text-xs text-zinc-500">Access spatial sound stages and premium early releases instantly.</p>
-          </div>
-          <button
-            onClick={() => navigate('/profile')}
-            className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5"
-          >
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>Review Upgrades</span>
-          </button>
         </div>
       )}
 

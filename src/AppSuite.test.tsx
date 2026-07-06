@@ -414,16 +414,18 @@ describe('Spotify-Like Music Application - 10 Test Suite', () => {
     // Default desktop rendering (window.innerWidth = 1024)
     const { container, rerender } = render(
       <MockStateProvider>
-        <MusicPlayer
-          currentTrack={testTrack}
-          setCurrentTrack={mockSetCurrentTrack}
-          isPlaying={true}
-          setIsPlaying={mockSetIsPlaying}
-          playNextTrack={mockNext}
-          playPrevTrack={mockPrev}
-          onLyricsClick={mockLyrics}
-          onAddToPlaylistClick={mockAddToPlaylist}
-        />
+        <MemoryRouter>
+          <MusicPlayer
+            currentTrack={testTrack}
+            setCurrentTrack={mockSetCurrentTrack}
+            isPlaying={true}
+            setIsPlaying={mockSetIsPlaying}
+            playNextTrack={mockNext}
+            playPrevTrack={mockPrev}
+            onLyricsClick={mockLyrics}
+            onAddToPlaylistClick={mockAddToPlaylist}
+          />
+        </MemoryRouter>
       </MockStateProvider>
     );
 
@@ -444,16 +446,18 @@ describe('Spotify-Like Music Application - 10 Test Suite', () => {
 
     rerender(
       <MockStateProvider>
-        <MusicPlayer
-          currentTrack={testTrack}
-          setCurrentTrack={mockSetCurrentTrack}
-          isPlaying={true}
-          setIsPlaying={mockSetIsPlaying}
-          playNextTrack={mockNext}
-          playPrevTrack={mockPrev}
-          onLyricsClick={mockLyrics}
-          onAddToPlaylistClick={mockAddToPlaylist}
-        />
+        <MemoryRouter>
+          <MusicPlayer
+            currentTrack={testTrack}
+            setCurrentTrack={mockSetCurrentTrack}
+            isPlaying={true}
+            setIsPlaying={mockSetIsPlaying}
+            playNextTrack={mockNext}
+            playPrevTrack={mockPrev}
+            onLyricsClick={mockLyrics}
+            onAddToPlaylistClick={mockAddToPlaylist}
+          />
+        </MemoryRouter>
       </MockStateProvider>
     );
 

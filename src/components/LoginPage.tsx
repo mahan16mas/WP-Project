@@ -55,10 +55,21 @@ export const LoginPage: React.FC = () => {
     if (result.success && result.user) {
       setAuthSuccess(`Welcome back, ${result.user.name}!`);
       setTimeout(() => {
-        // Route users to their specific workspace / view
-        // The App handles the main view based on currentUser role,
-        // so we redirect to "/" where the main component mounts.
-        navigate('/');
+        // Route users dynamically to their correct role dashboard
+        const role = result.user?.role;
+        if (role === 'admin') {
+          navigate('/admin-dashboard');
+        } else if (role === 'support') {
+          navigate('/support-agent-dashboard');
+        } else if (role === 'artist') {
+          if (result.user?.status === 'pending' || result.user?.status === 'rejected') {
+            navigate('/dashboard'); // ProtectedRoute will render the Pending screen
+          } else {
+            navigate('/artist-dashboard');
+          }
+        } else {
+          navigate('/dashboard');
+        }
       }, 1000);
     } else {
       setAuthError(result.message);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useMockState } from '../context/MockStateContext';
 import { Song, Playlist } from '../types';
-import { Play, Pause, Trash2, ListMusic, Plus, FolderHeart, Info, X, Edit2, Sparkles, Crown } from 'lucide-react';
+import { Play, Pause, Trash2, ListMusic, Plus, FolderHeart, Info, X, Edit2, Sparkles, Crown, Download } from 'lucide-react';
 
 interface OutletContextType {
   currentTrack: Song | null;
@@ -129,19 +129,12 @@ export const PlaylistsView: React.FC = () => {
           {userPlaylists.length === 0 ? (
             <div className="p-8 text-center border border-dashed border-zinc-800 rounded-xl bg-zinc-900/10">
               <FolderHeart className="w-10 h-10 text-zinc-700 mx-auto mb-2" />
-              <p className="text-xs text-zinc-400 font-semibold">No playlists curated yet</p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="mt-3 text-[11px] text-emerald-400 hover:underline font-bold cursor-pointer"
-              >
-                Create your first playlist
-              </button>
-              <div className="mt-2 text-[10px] text-zinc-500 font-mono">or</div>
+              <p className="text-xs text-zinc-400 font-semibold mb-1">No playlists curated yet</p>
               <button
                 onClick={() => navigate('/search')}
-                className="mt-1 text-[11px] text-zinc-300 hover:text-white font-bold cursor-pointer underline"
+                className="mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-lg transition cursor-pointer shadow-md w-full"
               >
-                Search all tracks
+                Create First Playlist / Add Tracks
               </button>
             </div>
           ) : (
@@ -295,7 +288,7 @@ export const PlaylistsView: React.FC = () => {
                       onClick={() => navigate('/search')}
                       className="mt-5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-lg transition cursor-pointer shadow-md"
                     >
-                      Browse & Search Archive
+                      Create First Playlist / Add Tracks
                     </button>
                   </div>
                 ) : (
@@ -335,6 +328,24 @@ export const PlaylistsView: React.FC = () => {
                               {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
                             </span>
                             
+                            {currentUser && currentUser.tier !== 'free' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const link = document.createElement('a');
+                                  link.href = song.audioUrl;
+                                  link.download = `${song.title} - ${song.artistName}.mp3`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className="text-zinc-500 hover:text-emerald-400 transition p-1 cursor-pointer"
+                                title="Download Track"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();

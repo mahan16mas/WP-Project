@@ -18,7 +18,8 @@ import {
   Volume2,
   Calendar,
   Layers,
-  Heading
+  Heading,
+  Download
 } from 'lucide-react';
 
 interface OutletContextType {
@@ -267,7 +268,26 @@ export const SearchView: React.FC = () => {
                   </div>
 
                   {/* Right Column context drop action buttons */}
-                  <div className="flex flex-col items-end gap-2.5 shrink-0 relative">
+                  <div className="flex flex-row items-center gap-1.5 shrink-0 relative">
+                    {/* Download Music - Hidden/Disabled for Free users */}
+                    {currentUser && currentUser.tier !== 'free' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const link = document.createElement('a');
+                          link.href = song.audioUrl;
+                          link.download = `${song.title} - ${song.artistName}.mp3`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="p-1.5 hover:bg-zinc-900 rounded-lg text-zinc-500 hover:text-emerald-400 transition cursor-pointer border border-transparent hover:border-zinc-800"
+                        title="Download Track"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
+
                     <button
                       onClick={() => setActiveMenuSongId(activeMenuSongId === song.id ? null : song.id)}
                       className="p-1.5 hover:bg-zinc-900 rounded-lg text-zinc-500 hover:text-zinc-300 transition cursor-pointer border border-transparent hover:border-zinc-800"

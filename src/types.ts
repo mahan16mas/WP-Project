@@ -15,6 +15,7 @@ export interface User {
   status?: 'active' | 'pending' | 'rejected'; // For pending artist states
   dob?: string; // Listener demographic data
   gender?: string; // Listener demographic data
+  dailyStreamsCount?: number; // Daily stream limit tracker
 }
 
 export interface Song {

@@ -19,7 +19,8 @@ import {
   ListMusic,
   X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Download
 } from 'lucide-react';
 import { Song } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -58,6 +59,19 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
   const [skipsRemaining, setSkipsRemaining] = useState(6); // Mock skip limits for Free Tier
   const [showSkipAlert, setShowSkipAlert] = useState(false);
   const [streamLogged, setStreamLogged] = useState(false);
+  const [showStreamLimitAlert, setShowStreamLimitAlert] = useState(false);
+
+  const getStreamLimit = (tier: string) => {
+    if (tier === 'free') return 60;
+    if (tier === 'silver') return 100;
+    return Infinity;
+  };
+
+  const isStreamLimitReached = () => {
+    if (!currentUser || currentUser.role !== 'listener') return false;
+    const count = currentUser.dailyStreamsCount || 0;
+    return count >= getStreamLimit(currentUser.tier);
+  };
 
   // New features state
   const [isShuffle, setIsShuffle] = useState(false);
@@ -233,6 +247,12 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
       }
 
       if (isPlaying) {
+        if (isStreamLimitReached()) {
+          audio.pause();
+          setIsPlaying(false);
+          setShowStreamLimitAlert(true);
+          return;
+        }
         audio.play().catch(err => {
           console.log("Audio play failed or was interrupted:", err);
           setIsPlaying(false);
@@ -263,6 +283,10 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
   const handlePlayPause = () => {
     if (!currentTrack) return;
+    if (!isPlaying && isStreamLimitReached()) {
+      setShowStreamLimitAlert(true);
+      return;
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -282,6 +306,16 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
+  };
+
+  const handleDownload = () => {
+    if (!currentTrack) return;
+    const link = document.createElement('a');
+    link.href = currentTrack.audioUrl;
+    link.download = `${currentTrack.title} - ${currentTrack.artistName}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const formatTime = (time: number) => {
@@ -472,6 +506,15 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
               <span>Skip limit reached (6/hr). <strong>Upgrade to Premium</strong> to skip unlimited songs!</span>
             </div>
           )}
+
+          {/* Stream Limit Alert prompt */}
+          {showStreamLimitAlert && (
+            <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-red-950/95 border border-red-800 text-red-200 text-[11px] px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-bounce z-50">
+              <Sparkles className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+              <span>Daily playback limit reached ({getStreamLimit(currentUser.tier)} streams/day). <strong>Upgrade your Subscription</strong> for unlimited streaming!</span>
+              <button onClick={() => setShowStreamLimitAlert(false)} className="ml-2 hover:text-white font-black cursor-pointer font-mono text-xs p-1">×</button>
+            </div>
+          )}
         </div>
 
         {/* Utility Sliders (Right Block) */}
@@ -498,6 +541,18 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-400 animate-ping" />
             )}
           </button>
+
+          {/* Download Music action button - Hidden/Disabled for Free users */}
+          {currentUser.tier !== 'free' && (
+            <button
+              onClick={handleDownload}
+              className="p-2 hover:text-white hover:scale-105 transition cursor-pointer text-zinc-400"
+              title="Download Music"
+              disabled={!currentTrack}
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Volume controls */}
           <div className="flex items-center gap-2">

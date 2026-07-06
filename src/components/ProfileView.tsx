@@ -29,7 +29,8 @@ export const ProfileView: React.FC = () => {
     updateProfile, 
     playlists, 
     songs, 
-    albums 
+    albums,
+    toggleFollowArtist
   } = useMockState();
 
   const [searchParams] = useSearchParams();
@@ -246,15 +247,32 @@ export const ProfileView: React.FC = () => {
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2 w-full">
                 <div className="flex items-center justify-center gap-2">
                   <h2 className="text-xl font-extrabold text-white tracking-tight">{currentUser.name}</h2>
                   {currentUser.tier === 'gold' && <Crown className="w-4 h-4 text-amber-400 fill-amber-400" />}
                 </div>
+                
+                {/* Assigned Username */}
+                <p className="text-xs text-zinc-400 font-mono text-center">
+                  <span className="text-zinc-600">Username:</span> @{currentUser.email.split('@')[0]}
+                </p>
+
                 <div className="flex justify-center mt-1">
                   {getTierBadge(currentUser.tier)}
                 </div>
-                <p className="text-xs text-zinc-500 font-mono mt-2">{currentUser.email}</p>
+                <p className="text-xs text-zinc-500 font-mono mt-1 text-center">{currentUser.email}</p>
+
+                {/* Follower/Following counts */}
+                <div className="flex items-center justify-center gap-4 text-xs font-mono text-zinc-400 mt-2.5 bg-zinc-950/40 py-1.5 px-3 rounded-lg border border-zinc-900/60 w-fit mx-auto">
+                  <div>
+                    <span className="text-white font-bold">{((currentUser.name || '').charCodeAt(0) % 20) + 12}</span> <span className="text-zinc-500">Followers</span>
+                  </div>
+                  <div className="w-px h-3 bg-zinc-800" />
+                  <div>
+                    <span className="text-white font-bold">{followedCount}</span> <span className="text-zinc-500">Following</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -455,6 +473,7 @@ export const ProfileView: React.FC = () => {
             {(() => {
               const artistObj = ARTIST_INFOS[selectedArtistId as keyof typeof ARTIST_INFOS];
               if (!artistObj) return null;
+              const isFollowing = currentUser.followedArtists?.includes(artistObj.name);
               return (
                 <div className="space-y-4 animate-in fade-in duration-200">
                   <div className="flex items-center gap-3 pb-4 border-b border-zinc-900">
@@ -466,9 +485,33 @@ export const ProfileView: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-1.5">
                         <h3 className="text-base font-bold text-white">{artistObj.name}</h3>
-                        <span className="verified-badge" title="Verified Creator Account">✓</span>
+                        {artistObj.verified && (
+                          <span className="verified-badge bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center justify-center select-none" title="Verified Creator Account">✓</span>
+                        )}
                       </div>
-                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Verified Artist ID: {artistObj.id}</p>
+                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5 mb-2.5">Verified Artist ID: {artistObj.id}</p>
+                      
+                      {/* Follow Mechanics Button */}
+                      <button
+                        onClick={() => toggleFollowArtist(artistObj.name)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer border flex items-center gap-1.5 ${
+                          isFollowing
+                            ? 'bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-750 hover:text-white'
+                            : 'bg-emerald-500 border-emerald-400 text-black font-extrabold hover:bg-emerald-400 hover:scale-[1.02]'
+                        }`}
+                      >
+                        {isFollowing ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Following</span>
+                          </>
+                        ) : (
+                          <>
+                            <Users className="w-3.5 h-3.5" />
+                            <span>Follow</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -486,15 +529,17 @@ export const ProfileView: React.FC = () => {
           {/* Right Block: Released Tracks & Gold Exclusive Panel (7 columns) */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Released tracks in system */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-zinc-500 font-mono uppercase tracking-wider">
-                Released Tracks & Albums
-              </h3>
+            {/* Released singles and albums in system */}
+            <div className="space-y-4">
+              <div className="border-b border-zinc-900 pb-2">
+                <h3 className="text-xs font-bold text-zinc-500 font-mono uppercase tracking-wider">
+                  Released Singles & Tracks
+                </h3>
+              </div>
               
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
                 {songs.filter(s => s.artistId === selectedArtistId).length === 0 ? (
-                  <div className="p-8 text-center border border-dashed border-zinc-800 rounded-xl text-zinc-500 font-mono text-xs">
+                  <div className="p-4 text-center border border-dashed border-zinc-800 rounded-xl text-zinc-500 font-mono text-xs">
                     No released singles found.
                   </div>
                 ) : (
@@ -513,12 +558,54 @@ export const ProfileView: React.FC = () => {
                           />
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-white truncate">{s.title}</p>
-                            <p className="text-[9px] text-zinc-500 font-mono mt-0.5">{s.albumName} • {s.streams.toLocaleString()} loops</p>
+                            <p className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                              {s.albumName}
+                              {currentUser.tier === 'gold' && ` • ${s.streams.toLocaleString()} loops`}
+                            </p>
                           </div>
                         </div>
                         <span className="text-[10px] text-zinc-500 font-mono">
                           {Math.floor(s.duration / 60)}:{(s.duration % 60).toString().padStart(2, '0')}
                         </span>
+                      </div>
+                    ))
+                )}
+              </div>
+
+              {/* Released Albums Section */}
+              <div className="border-b border-zinc-900 pb-2 pt-2">
+                <h3 className="text-xs font-bold text-zinc-500 font-mono uppercase tracking-wider">
+                  Released Albums
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-1 scrollbar-thin">
+                {albums.filter(a => a.artistId === selectedArtistId).length === 0 ? (
+                  <div className="col-span-2 p-4 text-center border border-dashed border-zinc-800 rounded-xl text-zinc-500 font-mono text-xs">
+                    No albums released.
+                  </div>
+                ) : (
+                  albums
+                    .filter(a => a.artistId === selectedArtistId)
+                    .map((a) => (
+                      <div 
+                        key={a.id}
+                        className="p-3 bg-zinc-950 rounded-xl border border-zinc-900 flex items-center gap-3 min-w-0"
+                      >
+                        <img
+                          src={a.coverUrl}
+                          alt={a.title}
+                          className="w-10 h-10 rounded object-cover shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white truncate">{a.title}</p>
+                          <p className="text-[9px] text-zinc-500 font-mono mt-0.5 truncate">
+                            Released: {a.releaseDate}
+                          </p>
+                          <p className="text-[9px] text-emerald-400 font-mono font-bold">
+                            {a.songIds.length} Tracks
+                          </p>
+                        </div>
                       </div>
                     ))
                 )}
@@ -575,7 +662,7 @@ export const ProfileView: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleUpgrade('gold')}
+                  onClick={() => upgradeTier(currentUser.id, 'gold')}
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-extrabold rounded-lg uppercase shadow-lg shadow-amber-500/10 transition cursor-pointer"
                 >
                   Upgrade to Gold to Unlock

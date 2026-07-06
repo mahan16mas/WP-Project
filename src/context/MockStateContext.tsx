@@ -272,6 +272,26 @@ const DEFAULT_NOTIFICATIONS: Notification[] = [
     createdAt: "2026-07-05T09:00:00"
   },
   {
+    id: "not-1-exp",
+    userId: "usr-silver",
+    role: "listener",
+    title: "Subscription Renewal Notice",
+    message: "Your Silver plan subscription is expiring in 3 days on 2026-07-09. Standard renewal auto-debit will be processed.",
+    type: "warning",
+    read: false,
+    createdAt: "2026-07-06T01:15:00"
+  },
+  {
+    id: "not-1-rel",
+    userId: "all",
+    role: "listener",
+    title: "New Artist Release: 'Sunset Drift' Single!",
+    message: "Luna Echo has just dropped a brand new single 'Sunset Drift'. Stream it now in high-fidelity!",
+    type: "success",
+    read: false,
+    createdAt: "2026-07-06T01:45:00"
+  },
+  {
     id: "not-2",
     userId: "usr-luna",
     role: "artist",
@@ -282,6 +302,26 @@ const DEFAULT_NOTIFICATIONS: Notification[] = [
     createdAt: "2026-07-04T12:00:00"
   },
   {
+    id: "not-2-rej",
+    userId: "usr-luna",
+    role: "artist",
+    title: "Album Artwork Update Requested",
+    message: "Your previous album draft was rejected due to blurry artwork. Please re-upload with high-resolution 1:1 image ratios.",
+    type: "warning",
+    read: false,
+    createdAt: "2026-07-05T14:20:00"
+  },
+  {
+    id: "not-2-fin",
+    userId: "usr-luna",
+    role: "artist",
+    title: "Financial Clearance: Stream Revenue Payout Cleared",
+    message: "Your financial earnings statement for June 2026 is processed. $245.80 has been deposited to your connected bank account.",
+    type: "success",
+    read: false,
+    createdAt: "2026-07-05T18:00:00"
+  },
+  {
     id: "not-3",
     userId: "all",
     role: "support",
@@ -290,6 +330,26 @@ const DEFAULT_NOTIFICATIONS: Notification[] = [
     type: "ticket",
     read: false,
     createdAt: "2026-07-05T08:30:00"
+  },
+  {
+    id: "not-admin-tkt",
+    userId: "all",
+    role: "admin",
+    title: "New Ticket Escalation",
+    message: "A billing issue has been escalated to administrative review.",
+    type: "ticket",
+    read: false,
+    createdAt: "2026-07-06T00:10:00"
+  },
+  {
+    id: "not-admin-verif",
+    userId: "all",
+    role: "admin",
+    title: "Artist Verification Request Pending",
+    message: "New artist registration 'DJ Nebula' is awaiting administrative portfolio audit and approval.",
+    type: "warning",
+    read: false,
+    createdAt: "2026-07-06T01:30:00"
   }
 ];
 
@@ -1404,6 +1464,26 @@ export const MockStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
     setSongs(updatedSongs);
     saveToStorage('spotify_mock_songs', updatedSongs);
+
+    // Track stream usage for active user
+    if (currentUser) {
+      const currentCount = currentUser.dailyStreamsCount || 0;
+      const updatedCurrentUser = {
+        ...currentUser,
+        dailyStreamsCount: currentCount + 1
+      };
+      setCurrentUser(updatedCurrentUser);
+      saveToStorage('spotify_mock_current_user', updatedCurrentUser);
+
+      const updatedUsers = users.map(u => {
+        if (u.id === currentUser.id) {
+          return updatedCurrentUser;
+        }
+        return u;
+      });
+      setUsers(updatedUsers);
+      saveToStorage('spotify_mock_users', updatedUsers);
+    }
 
     // Dynamic Financial Metric Calculations
     // 1. Total streams goes up

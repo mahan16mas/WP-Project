@@ -14,7 +14,9 @@ import {
   Bell, 
   Check, 
   VolumeX, 
-  X 
+  X,
+  Sparkles,
+  Crown
 } from 'lucide-react';
 import './ProfileSettings.css';
 
@@ -308,6 +310,54 @@ export const SettingsView: React.FC = () => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Subscription Tier Info Card */}
+          <div className="bg-[#121214] border border-zinc-800/80 p-6 rounded-2xl shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-amber-400" />
+                <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wider">Subscription Tier</h2>
+              </div>
+              <span className={`text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded border ${
+                currentUser.tier === 'gold' 
+                  ? 'bg-amber-950/40 text-amber-400 border-amber-900/60' 
+                  : currentUser.tier === 'silver'
+                  ? 'bg-indigo-950/40 text-indigo-400 border-indigo-900/60'
+                  : 'bg-zinc-900/40 text-zinc-400 border-zinc-800'
+              }`}>
+                {currentUser.tier} Plan
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-[11px] text-zinc-400 leading-relaxed font-semibold">
+                Your current active subscription is the <strong className="text-white capitalize">{currentUser.tier} Tier</strong>.
+              </p>
+              
+              {currentUser.tier !== 'gold' ? (
+                <div className="space-y-2 pt-1">
+                  <p className="text-[10px] text-zinc-500 leading-normal">
+                    You are missing out on Lossless Spatial Audio streams, unlimited custom playlists, and live creator telemetry dashboards!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/profile')}
+                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black text-xs font-black rounded-xl transition cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-1.5 uppercase font-mono"
+                  >
+                    <Sparkles className="w-4 h-4 fill-black/25 text-black" />
+                    <span>Upgrade to Gold Tier</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="p-3 bg-amber-950/10 border border-amber-900/20 rounded-xl text-[10px] text-amber-400/90 leading-relaxed font-semibold flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 shrink-0 text-amber-400 animate-pulse mt-0.5" />
+                  <span>
+                    You have unlocked all Premium privileges including Hi-Res lossless playback, spatial sound systems, and full-scale listener metrics.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
