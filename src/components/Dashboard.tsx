@@ -1,25 +1,17 @@
 import React, { useState } from 'react';
 import { useMockState } from '../context/MockStateContext';
-import { Song, Playlist } from '../types';
+import { Song } from '../types';
 import { 
   Play, 
-  Pause, 
   Search, 
   Music, 
-  Star, 
   HelpCircle, 
-  Heart, 
-  Check, 
   CornerDownRight, 
-  FileText,
+  Sparkles, 
+  Trash2, 
+  ListMusic, 
   Clock,
-  Sparkles,
-  Send,
-  Plus,
-  Trash2,
-  ListMusic,
-  User,
-  ExternalLink
+  Radio
 } from 'lucide-react';
 import { ArtistDashboard } from './ArtistDashboard';
 import { SupportDashboard } from './SupportDashboard';
@@ -60,19 +52,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
     tickets, 
     applications, 
     removeTrackFromPlaylist,
-    deletePlaylist,
-    toggleFollowArtist
+    deletePlaylist
   } = useMockState();
 
-  // Search local state
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Support Center state
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
   const [ticketSuccess, setTicketSuccess] = useState('');
   
-  // Artist Application state
   const [appArtistName, setAppArtistName] = useState('');
   const [appBio, setAppBio] = useState('');
   const [appGenre, setAppGenre] = useState('Lo-Fi Hip-Hop');
@@ -107,17 +95,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setTimeout(() => setAppSuccess(''), 4000);
   };
 
-  // Views Router
   const renderViewContent = () => {
-    
-    // ==========================================
-    // VIEW: HOME
-    // ==========================================
     if (currentView === 'home') {
+      const earlyAccessTracks = songs.slice().reverse().slice(0, 2);
+
       return (
         <div className="space-y-8 animate-in fade-in duration-200">
           
-          {/* Header Greeting Banner */}
           <div className="bg-gradient-to-b from-zinc-900/50 to-zinc-950 p-6 rounded-2xl border border-zinc-900 shadow-xl flex items-center justify-between">
             <div className="space-y-1.5">
               <span className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest uppercase">
@@ -141,13 +125,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
           </div>
 
-          {/* Curated Albums Grid */}
+          {currentUser.tier === 'gold' && (
+            <div className="p-6 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-900 border border-amber-500/30 rounded-2xl space-y-4 shadow-xl">
+              <div className="flex items-center gap-2">
+                <Radio className="w-5 h-5 text-amber-400 animate-pulse" />
+                <h3 className="text-sm font-extrabold text-amber-400 font-mono uppercase tracking-wider">
+                  Gold Exclusive: Early Access Releases
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {earlyAccessTracks.map((song) => (
+                  <div key={song.id} className="flex items-center gap-3 p-3 bg-zinc-950/80 rounded-xl border border-amber-500/20">
+                    <img src={song.coverUrl} alt={song.title} className="w-12 h-12 rounded object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{song.title}</p>
+                      <p className="text-[10px] text-amber-300 font-mono truncate">{song.artistName} • Early Premier</p>
+                    </div>
+                    <button
+                      onClick={() => handleTrackPlay(song)}
+                      className="p-2 bg-amber-500 text-black rounded-full hover:bg-amber-400 transition"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-black" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white tracking-tight">Curated Albums</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {albums.map((album) => {
                 const albumTracks = songs.filter(s => s.albumId === album.id);
-                const isAlbumPlaying = albumTracks.some(t => currentTrack && t.id === currentTrack.id && isPlaying);
                 return (
                   <div 
                     key={album.id}
@@ -184,12 +194,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Recommendations / Top Tracks Row */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Left Box: Top Tracks list (8 cols) */}
             <div className="lg:col-span-8 bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl space-y-4">
-              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-widest text-zinc-400">
+              <h3 className="text-sm font-bold font-mono uppercase tracking-widest text-zinc-400">
                 Popular Streaming Songs
               </h3>
               <div className="space-y-2">
@@ -222,7 +229,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </p>
                       </div>
                       
-                      {/* Track hover play button */}
                       <div className="flex items-center gap-3 shrink-0">
                         <span className="text-[10px] text-zinc-500 font-mono">
                           {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
@@ -237,14 +243,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
 
-            {/* Right Box: Dynamic System Stats Sidebar (4 cols) */}
             <div className="lg:col-span-4 bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-zinc-400 font-mono uppercase tracking-widest">
                   Quick Stats & Activity
                 </h3>
                 
-                {/* Simulated notifications / activity highlights */}
                 <div className="space-y-3">
                   <div className="p-3 bg-zinc-900/50 rounded-xl border border-zinc-900">
                     <span className="text-[9px] text-zinc-500 font-mono">Current User Identity</span>
@@ -260,7 +264,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              {/* Disclaimer / Prompt */}
               <div className="pt-6 border-t border-zinc-900 text-[10px] text-zinc-600 font-mono leading-normal mt-4">
                 All metrics are mock computed in real-time within your active local session using Spotify-Like React Context structures.
               </div>
@@ -272,9 +275,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       );
     }
 
-    // ==========================================
-    // VIEW: SEARCH
-    // ==========================================
     if (currentView === 'search') {
       const filteredSongs = songs.filter(s => 
         s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -289,7 +289,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <p className="text-xs text-zinc-500">Query songs, albums, playlists, or artist profiles instant-feed.</p>
           </div>
 
-          {/* Search bar input */}
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-zinc-500" />
             <input
@@ -301,7 +300,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             />
           </div>
 
-          {/* Search Results list */}
           <div className="bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl space-y-4">
             <span className="text-xs font-bold text-zinc-500 font-mono uppercase tracking-widest block">
               Search Results ({filteredSongs.length})
@@ -353,16 +351,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       );
     }
 
-    // ==========================================
-    // VIEW: PLAYLIST DETAIL
-    // ==========================================
     if (currentView === 'playlist-detail') {
       const playlist = playlists.find(p => p.id === selectedPlaylistId);
       if (!playlist) {
         return <div className="text-zinc-500">Playlist not found.</div>;
       }
 
-      // Fetch all songs listed in this playlist
       const playlistSongs = songs.filter(s => playlist.songIds.includes(s.id));
 
       const handleDeleteClick = () => {
@@ -373,7 +367,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return (
         <div className="space-y-6 animate-in fade-in duration-200">
           
-          {/* Playlist Detail Header banner */}
           <div className="flex flex-col md:flex-row items-start md:items-end gap-6 bg-gradient-to-b from-emerald-950/20 to-zinc-950 p-6 rounded-2xl border border-zinc-900">
             <img
               src={playlist.coverUrl}
@@ -399,7 +392,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
 
-            {/* Trash button */}
             <button
               onClick={handleDeleteClick}
               className="p-2.5 bg-rose-950 text-rose-300 border border-rose-900 rounded-lg hover:bg-rose-900 hover:text-white transition shadow cursor-pointer self-start md:self-end"
@@ -409,7 +401,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
           </div>
 
-          {/* Tracks list inside playlist */}
           <div className="bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
               <span className="text-xs font-bold text-zinc-400 font-mono uppercase tracking-widest">
@@ -449,7 +440,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <p className="text-[10px] text-zinc-500 truncate">{song.artistName} • {song.albumName}</p>
                       </div>
 
-                      {/* Remove track action */}
                       <div className="flex items-center gap-3 shrink-0">
                         <span className="text-[10px] text-zinc-500 font-mono">
                           {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
@@ -476,29 +466,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
       );
     }
 
-    // ==========================================
-    // VIEW: SUPPORT CENTER (LISTENER SUBMISSIONS)
-    // ==========================================
     if (currentView === 'support-center') {
-      // Filter user's tickets
       const userTickets = tickets.filter(t => t.userId === currentUser.id);
-      
-      // Filter user's pending or approved artist applications
       const userApps = applications.filter(a => a.userId === currentUser.id);
 
       return (
         <div className="space-y-8 animate-in fade-in duration-200">
           
-          {/* Header */}
           <div className="space-y-1">
             <h2 className="text-2xl font-bold text-white tracking-tight">Support & Creator Application Portal</h2>
             <p className="text-xs text-zinc-400">File assistance tickets, inspect historical complaints, or request authorization to launch as an artist.</p>
           </div>
 
-          {/* Double Column: Artist application + Support ticket forms */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* Box 1: Apply to be an Artist */}
             <div className="bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl space-y-6">
               <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
                 <Sparkles className="w-5 h-5 text-amber-400" />
@@ -599,7 +580,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               )}
             </div>
 
-            {/* Box 2: Create Support Ticket */}
             <div className="bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl space-y-6">
               <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
                 <HelpCircle className="w-5 h-5 text-sky-400" />
@@ -651,7 +631,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           </div>
 
-          {/* Bottom Feed: Historical inquiries */}
           <div className="bg-[#121212] border border-zinc-800 p-6 rounded-2xl shadow-xl space-y-4">
             <span className="text-xs font-bold text-zinc-500 font-mono uppercase tracking-widest block border-b border-zinc-900 pb-3">
               Your Open Tickets & Helpdesk History ({userTickets.length})
@@ -683,7 +662,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {t.message}
                     </p>
 
-                    {/* Replies feed */}
                     {t.replies.length > 0 && (
                       <div className="pl-4 border-l-2 border-sky-800 space-y-3 mt-2">
                         {t.replies.map(r => (
@@ -709,9 +687,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       );
     }
 
-    // ==========================================
-    // VIEW: ROLE CORE WORKSPACES
-    // ==========================================
     if (currentView === 'artist-dashboard') {
       return <ArtistDashboard />;
     }
