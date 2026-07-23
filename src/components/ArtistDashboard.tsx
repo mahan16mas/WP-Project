@@ -7,28 +7,21 @@ import {
   TrendingUp, 
   Music, 
   DollarSign, 
-  Eye, 
   ListMusic,
-  PlusCircle,
   FileAudio,
-  Calendar,
   AlertCircle,
   Trash2,
   Edit,
-  Save,
   X,
   FileText,
   Users,
   Image as ImageIcon,
-  Tag,
-  Layers,
   Activity
 } from 'lucide-react';
 
 export const ArtistDashboard: React.FC = () => {
   const { currentUser, songs, uploadSong, updateSong, deleteSong, config } = useMockState();
 
-  // 1. Release Form State
   const [title, setTitle] = useState('');
   const [albumName, setAlbumName] = useState('');
   const [releaseType, setReleaseType] = useState<'single' | 'album'>('single');
@@ -39,18 +32,15 @@ export const ArtistDashboard: React.FC = () => {
   const [lyrics, setLyrics] = useState('');
   const [coverPreset, setCoverPreset] = useState('synth');
   
-  // 2. Drag and Drop File Upload States
   const [dragActiveAudio, setDragActiveAudio] = useState(false);
   const [audioFileName, setAudioFileName] = useState('');
   const [audioFileSize, setAudioFileSize] = useState('');
   const [dragActiveCover, setDragActiveCover] = useState(false);
   const [coverFileName, setCoverFileName] = useState('');
   
-  // File input refs
   const audioInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  // 3. Edit & Take Down States
   const [editingSong, setEditingSong] = useState<Song | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editAlbumName, setEditAlbumName] = useState('');
@@ -65,7 +55,6 @@ export const ArtistDashboard: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  // Access Validation
   if (!currentUser || currentUser.role !== 'artist') {
     return (
       <div className="bg-rose-950/20 border border-rose-900/30 p-8 rounded-2xl text-center max-w-lg mx-auto my-12 shadow-2xl">
@@ -78,8 +67,7 @@ export const ArtistDashboard: React.FC = () => {
     );
   }
 
-  // Access check for Verified (Approved) status
-  if (currentUser.status !== 'approved') {
+  if (currentUser.status === 'pending' || currentUser.status === 'rejected') {
     return (
       <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl text-center max-w-xl mx-auto my-12 shadow-2xl space-y-4">
         <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto text-amber-500">
@@ -103,16 +91,13 @@ export const ArtistDashboard: React.FC = () => {
     );
   }
 
-  // Filter songs published by this specific artist ID
   const artistSongs = songs.filter(s => s.artistId === currentUser.id);
 
-  // Dynamic Metrics row calculations
   const totalTracks = artistSongs.length;
   const totalStreams = artistSongs.reduce((acc, s) => acc + s.streams, 0);
-  const totalListeners = Math.round(totalStreams * 0.74) + (totalTracks * 12); // Dynamic listeners approximation
+  const totalListeners = Math.round(totalStreams * 0.74) + (totalTracks * 12);
   const totalEarnings = Number((totalStreams * config.metrics.averagePayoutPerStream).toFixed(2));
 
-  // Audio File Drag & Drop Handlers
   const handleAudioDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -143,7 +128,6 @@ export const ArtistDashboard: React.FC = () => {
     }
   };
 
-  // Cover Art Drag & Drop Handlers
   const handleCoverDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -195,7 +179,6 @@ export const ArtistDashboard: React.FC = () => {
     };
     const coverUrl = presetUrls[coverPreset] || presetUrls.synth;
 
-    // Send payload to global state
     uploadSong(title, albumName, duration, lyrics, coverUrl, {
       releaseType,
       genre,
@@ -207,7 +190,6 @@ export const ArtistDashboard: React.FC = () => {
 
     setSuccess(`"${title}" published successfully to your stream catalog!`);
     
-    // Clear states
     setTitle('');
     setAlbumName('');
     setDurationSecs('180');
@@ -222,7 +204,6 @@ export const ArtistDashboard: React.FC = () => {
     setTimeout(() => setSuccess(''), 4500);
   };
 
-  // Open Edit Modal
   const startEditing = (song: Song) => {
     setEditingSong(song);
     setEditTitle(song.title);
@@ -253,7 +234,6 @@ export const ArtistDashboard: React.FC = () => {
     setTimeout(() => setSuccess(''), 3000);
   };
 
-  // Open Delete Take Down confirmation
   const triggerTakeDown = (song: Song) => {
     setDeletingSong(song);
   };
@@ -269,8 +249,6 @@ export const ArtistDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      
-      {/* 1. Header Banner */}
       <div className="bg-gradient-to-r from-emerald-950/35 via-zinc-900 to-zinc-900 p-8 rounded-2xl border border-emerald-500/10 shadow-2xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-5 flex items-center justify-center">
           <Sparkles className="w-64 h-64 text-emerald-400 rotate-12" />
@@ -289,7 +267,6 @@ export const ArtistDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Comprehensive Analytics UI Dashboard */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 border-l-2 border-emerald-500 pl-3">
           <Activity className="w-5 h-5 text-emerald-400" />
@@ -297,7 +274,6 @@ export const ArtistDashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Card 1: Total Streams */}
           <div className="bg-zinc-950/70 p-5 rounded-xl border border-zinc-900 shadow-md relative overflow-hidden group hover:border-zinc-800 transition-all">
             <div className="absolute top-4 right-4 text-emerald-500/20 group-hover:text-emerald-500/40 transition">
               <TrendingUp className="w-10 h-10" />
@@ -310,7 +286,6 @@ export const ArtistDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 2: Unique Listeners */}
           <div className="bg-zinc-950/70 p-5 rounded-xl border border-zinc-900 shadow-md relative overflow-hidden group hover:border-zinc-800 transition-all">
             <div className="absolute top-4 right-4 text-sky-500/20 group-hover:text-sky-500/40 transition">
               <Users className="w-10 h-10" />
@@ -322,7 +297,6 @@ export const ArtistDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 3: Estimated Earnings */}
           <div className="bg-zinc-950/70 p-5 rounded-xl border border-zinc-900 shadow-md relative overflow-hidden group hover:border-zinc-800 transition-all">
             <div className="absolute top-4 right-4 text-amber-500/20 group-hover:text-amber-500/40 transition">
               <DollarSign className="w-10 h-10" />
@@ -334,7 +308,6 @@ export const ArtistDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 4: Catalog Release density */}
           <div className="bg-zinc-950/70 p-5 rounded-xl border border-zinc-900 shadow-md relative overflow-hidden group hover:border-zinc-800 transition-all">
             <div className="absolute top-4 right-4 text-indigo-500/20 group-hover:text-indigo-500/40 transition">
               <Music className="w-10 h-10" />
@@ -355,10 +328,7 @@ export const ArtistDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 3. Main Work Spaces Grid: Left Pipeline Form, Right Catalog control */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Workspace: Upload Content Pipeline (5 cols) */}
         <div className="lg:col-span-5 bg-zinc-950/40 border border-zinc-900 p-6 rounded-2xl shadow-xl space-y-6">
           <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
             <Upload className="w-5 h-5 text-emerald-400" />
@@ -366,8 +336,6 @@ export const ArtistDashboard: React.FC = () => {
           </div>
 
           <form onSubmit={handleUploadSubmit} className="space-y-4">
-            
-            {/* Track & Album Title */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-zinc-400 font-mono uppercase mb-1.5">
@@ -398,7 +366,6 @@ export const ArtistDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Categorization & Year & Duration */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-zinc-400 font-mono uppercase mb-1.5">
@@ -463,7 +430,6 @@ export const ArtistDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Collaborators & Duration */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-zinc-400 font-mono uppercase mb-1.5">
@@ -493,7 +459,6 @@ export const ArtistDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Drag & Drop Audio upload pipeline */}
             <div>
               <label className="block text-[10px] font-bold text-zinc-400 font-mono uppercase mb-1.5">
                 Mock Audio File Upload
@@ -534,7 +499,6 @@ export const ArtistDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Drag & Drop Cover Art Upload or Presets */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-zinc-400 font-mono uppercase mb-1.5">
@@ -597,7 +561,6 @@ export const ArtistDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Song Lyrics */}
             <div>
               <label className="block text-[10px] font-bold text-zinc-400 font-mono uppercase mb-1.5">
                 Song Lyrics (Rich text preview supported)
@@ -626,7 +589,6 @@ export const ArtistDashboard: React.FC = () => {
           </form>
         </div>
 
-        {/* Right Workspace: Published Catalog Content Control (7 cols) */}
         <div className="lg:col-span-7 bg-zinc-950/40 border border-zinc-900 p-6 rounded-2xl shadow-xl space-y-6">
           <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
             <div className="flex items-center gap-2">
@@ -691,7 +653,6 @@ export const ArtistDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Content Controls Row */}
                     <div className="flex items-center justify-between pt-3 border-t border-zinc-900/50">
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] text-zinc-500 font-mono">
@@ -704,7 +665,6 @@ export const ArtistDashboard: React.FC = () => {
                         )}
                       </div>
                       <div className="flex gap-2">
-                        {/* Edit Button */}
                         <button
                           type="button"
                           onClick={() => startEditing(song)}
@@ -715,7 +675,6 @@ export const ArtistDashboard: React.FC = () => {
                           <span>Edit</span>
                         </button>
 
-                        {/* Take Down (Delete) Button */}
                         <button
                           type="button"
                           onClick={() => triggerTakeDown(song)}
@@ -736,7 +695,6 @@ export const ArtistDashboard: React.FC = () => {
 
       </div>
 
-      {/* Edit Track Metadata Modal */}
       {editingSong && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-[#121212] border border-zinc-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
@@ -867,7 +825,6 @@ export const ArtistDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Take Down Confirmation Modal */}
       {deletingSong && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-[#121212] border border-zinc-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center">
