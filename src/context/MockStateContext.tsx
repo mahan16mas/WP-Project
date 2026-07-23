@@ -797,22 +797,21 @@ export const MockStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // 3. Playlist Operations with Tier Enforcement
   const createPlaylist = (name: string, description: string, isPublic = true): { success: boolean; message: string } => {
-    if (!currentUser) return { success: false, message: "User not authenticated." };
+    if (!currentUser) return { success: false, message: "User not found." };
 
-    // TIER ENFORCEMENT
     const userPlaylistsCount = playlists.filter(p => p.userId === currentUser.id).length;
     
     if (currentUser.role === 'listener') {
       if (currentUser.tier === 'free' && userPlaylistsCount >= 6) {
         return {
           success: false,
-          message: "Tier Limit Reached! Free accounts are limited to a maximum of 6 playlists. Upgrade to Silver or Gold for more!"
+          message: "Free tier limit: Basic accounts can create a maximum of 6 playlists."
         };
       }
       if (currentUser.tier === 'silver' && userPlaylistsCount >= 100) {
         return {
           success: false,
-          message: "Tier Limit Reached! Silver accounts are limited to a maximum of 100 playlists. Upgrade to Gold for unlimited creations!"
+          message: "Silver tier limit: Maximum of 100 playlists allowed. Upgrade to Gold for unlimited creations."
         };
       }
     }
@@ -832,22 +831,10 @@ export const MockStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setPlaylists(updatedPlaylists);
     saveToStorage('spotify_mock_playlists', updatedPlaylists);
 
-    // Update user's playlist count
-    const updatedUsers = users.map(u => {
-      if (u.id === currentUser.id) {
-        return { ...u, playlistsCount: u.playlistsCount + 1 };
-      }
-      return u;
-    });
-    setUsers(updatedUsers);
-    saveToStorage('spotify_mock_users', updatedUsers);
-    
-    if (currentUser) {
-      setCurrentUser({ ...currentUser, playlistsCount: currentUser.playlistsCount + 1 });
-    }
-
     return { success: true, message: "Playlist created successfully!" };
   };
+
+  
 
   const deletePlaylist = (playlistId: string) => {
     const updatedPlaylists = playlists.filter(p => p.id !== playlistId);
@@ -891,23 +878,6 @@ export const MockStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!playlist) return { success: false, message: "Playlist not found." };
     if (playlist.songIds.includes(songId)) {
       return { success: false, message: "This song is already in the playlist." };
-    }
-
-    // TIER ENFORCEMENT ON PLAYLIST SIZE
-    if (currentUser && currentUser.role === 'listener') {
-      const size = playlist.songIds.length;
-      if (currentUser.tier === 'free' && size >= 4) {
-        return {
-          success: false,
-          message: "Free Tier Limit: Free users are limited to 4 songs per playlist. Upgrade to add more!"
-        };
-      }
-      if (currentUser.tier === 'silver' && size >= 10) {
-        return {
-          success: false,
-          message: "Silver Tier Limit: Silver users are limited to 10 songs per playlist. Upgrade to Gold for unlimited tracks!"
-        };
-      }
     }
 
     const updatedPlaylists = playlists.map(p => {
@@ -1456,6 +1426,21 @@ export const MockStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const incrementSongStreams = (songId: string) => {
+    if (!currentUser) return;
+
+    const currentDailyCount = currentUser.dailyStreamsCount || 0;
+
+    if (currentUser.role === 'listener') {
+      if (currentUser.tier === 'free' && currentDailyCount >= 6) {
+        alert("Daily stream limit reached: Free tier accounts are limited to 6 streams per day.");
+        return;
+      }
+      if (currentUser.tier === 'silver' && currentDailyCount >= 60) {
+        alert("Daily stream limit reached: Silver tier accounts are limited to 60 streams per day.");
+        return;
+      }
+    }
+
     const updatedSongs = songs.map(s => {
       if (s.id === songId) {
         return { ...s, streams: s.streams + 1 };
@@ -1465,32 +1450,24 @@ export const MockStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setSongs(updatedSongs);
     saveToStorage('spotify_mock_songs', updatedSongs);
 
-    // Track stream usage for active user
-    if (currentUser) {
-      const currentCount = currentUser.dailyStreamsCount || 0;
-      const updatedCurrentUser = {
-        ...currentUser,
-        dailyStreamsCount: currentCount + 1
-      };
-      setCurrentUser(updatedCurrentUser);
-      saveToStorage('spotify_mock_current_user', updatedCurrentUser);
+    const updatedCurrentUser = {
+      ...currentUser,
+      dailyStreamsCount: currentDailyCount + 1
+    };
+    setCurrentUser(updatedCurrentUser);
+    saveToStorage('spotify_mock_current_user', updatedCurrentUser);
 
-      const updatedUsers = users.map(u => {
-        if (u.id === currentUser.id) {
-          return updatedCurrentUser;
-        }
-        return u;
-      });
-      setUsers(updatedUsers);
-      saveToStorage('spotify_mock_users', updatedUsers);
-    }
+    const updatedUsers = users.map(u => {
+      if (u.id === currentUser.id) {
+        return updatedCurrentUser;
+      }
+      return u;
+    });
+    setUsers(updatedUsers);
+    saveToStorage('spotify_mock_users', updatedUsers);
 
-    // Dynamic Financial Metric Calculations
-    // 1. Total streams goes up
-    // 2. Platform revenue grows marginally (mock ads and subscriptions stream pay)
-    // 3. Artist payout totals grow by stream rate ($0.0045)
     const payoutInc = config.metrics.averagePayoutPerStream;
-    const revenueInc = payoutInc / config.metrics.artistPayoutRate; // total pool grows based on payout proportion
+    const revenueInc = payoutInc / config.metrics.artistPayoutRate;
 
     const updatedConfig = {
       ...config,
