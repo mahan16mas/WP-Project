@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useMockState } from '../context/MockStateContext';
 import { Song, Album } from '../types';
-import { Play, Pause, Compass, Music, Disc, Heart, Calendar, Clock, Plus } from 'lucide-react';
+import { Play, Pause, Compass, Disc, Calendar, Plus, Search, ArrowUpDown } from 'lucide-react';
 
 interface OutletContextType {
   currentTrack: Song | null;
@@ -16,9 +16,26 @@ interface OutletContextType {
 export const AlbumsView: React.FC = () => {
   const { albums, songs } = useMockState();
   const { currentTrack, setCurrentTrack, isPlaying, setIsPlaying, onAddToPlaylistClick } = useOutletContext<OutletContextType>();
+  const navigate = useNavigate();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'listeners' | 'releaseDate'>('releaseDate');
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
 
-  const activeAlbumId = selectedAlbumId || (albums.length > 0 ? albums[0].id : null);
+  const filteredAlbums = albums.filter(album => 
+    album.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    album.artistName.toLowerCase().includes(searchQuery.toLowerCase())
+  ).sort((a, b) => {
+    if (sortBy === 'releaseDate') {
+      return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+    } else {
+      const aStreams = songs.filter(s => s.albumId === a.id).reduce((acc, s) => acc + s.streams, 0);
+      const bStreams = songs.filter(s => s.albumId === b.id).reduce((acc, s) => acc + s.streams, 0);
+      return bStreams - aStreams;
+    }
+  });
+
+  const activeAlbumId = selectedAlbumId || (filteredAlbums.length > 0 ? filteredAlbums[0].id : null);
   const activeAlbum = albums.find(a => a.id === activeAlbumId);
   const albumTracks = activeAlbum ? songs.filter(s => s.albumId === activeAlbum.id) : [];
 
@@ -37,81 +54,113 @@ export const AlbumsView: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      
-      {/* Title Header */}
-      <div className="border-b border-zinc-900 pb-5">
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">Curated Albums & Singles</h1>
-        <p className="text-xs text-zinc-400 font-medium">Browse high fidelity audio catalogs preloaded into your workspace.</p>
+      <div className="border-b border-zinc-900 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight">Curated Albums & Singles</h1>
+          <p className="text-xs text-zinc-400 font-medium mt-1">Browse high fidelity audio catalogs preloaded into your workspace.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search albums or artists..."
+              className="bg-zinc-900 border border-zinc-800 focus:border-emerald-500 focus:outline-none text-xs text-white pl-9 pr-3 py-2 rounded-lg w-48 sm:w-64"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-400">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'listeners' | 'releaseDate')}
+              className="bg-transparent text-white text-xs focus:outline-none cursor-pointer"
+            >
+              <option value="releaseDate" className="bg-zinc-900">Sort by Date</option>
+              <option value="listeners" className="bg-zinc-900">Sort by Streams</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Grid: Albums catalog items (5 columns) */}
         <div className="lg:col-span-5 space-y-4">
           <h3 className="text-xs font-bold text-zinc-500 font-mono uppercase tracking-wider">Albums Catalog</h3>
           
-          <div className="grid grid-cols-2 gap-4">
-            {albums.map((album) => {
-              const tracks = songs.filter(s => s.albumId === album.id);
-              const isSelected = album.id === activeAlbumId;
-              const isAlbumPlaying = tracks.some(t => currentTrack && t.id === currentTrack.id && isPlaying);
+          {filteredAlbums.length === 0 ? (
+            <div className="p-8 text-center border border-dashed border-zinc-900 rounded-xl">
+              <p className="text-xs text-zinc-500">No matching albums found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {filteredAlbums.map((album) => {
+                const tracks = songs.filter(s => s.albumId === album.id);
+                const isSelected = album.id === activeAlbumId;
+                const isAlbumPlaying = tracks.some(t => currentTrack && t.id === currentTrack.id && isPlaying);
 
-              return (
-                <div
-                  key={album.id}
-                  onClick={() => setSelectedAlbumId(album.id)}
-                  className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between group relative ${
-                    isSelected
-                      ? 'bg-zinc-900 border-zinc-800'
-                      : 'bg-zinc-950/40 border-zinc-900 hover:border-zinc-800'
-                  }`}
-                >
-                  <div className="relative overflow-hidden rounded-lg aspect-square mb-3 shadow-md">
-                    <img
-                      src={album.coverUrl}
-                      alt={album.title}
-                      className="w-full h-full object-cover group-hover:scale-102 transition duration-300"
-                      referrerPolicy="no-referrer"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (isAlbumPlaying) {
-                          setIsPlaying(false);
-                        } else {
-                          setSelectedAlbumId(album.id);
-                          handlePlayAlbum(album);
-                        }
-                      }}
-                      className="absolute bottom-2.5 right-2.5 w-9 h-9 bg-emerald-500 text-black rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition transform translate-y-1 group-hover:translate-y-0 cursor-pointer"
-                    >
-                      {isAlbumPlaying ? <Pause className="w-4 h-4 fill-black" /> : <Play className="w-4 h-4 fill-black ml-0.5" />}
-                    </button>
-                  </div>
+                return (
+                  <div
+                    key={album.id}
+                    onClick={() => setSelectedAlbumId(album.id)}
+                    className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between group relative ${
+                      isSelected
+                        ? 'bg-zinc-900 border-zinc-800'
+                        : 'bg-zinc-950/40 border-zinc-900 hover:border-zinc-800'
+                    }`}
+                  >
+                    <div className="relative overflow-hidden rounded-lg aspect-square mb-3 shadow-md">
+                      <img
+                        src={album.coverUrl}
+                        alt={album.title}
+                        className="w-full h-full object-cover group-hover:scale-102 transition duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isAlbumPlaying) {
+                            setIsPlaying(false);
+                          } else {
+                            setSelectedAlbumId(album.id);
+                            handlePlayAlbum(album);
+                          }
+                        }}
+                        className="absolute bottom-2.5 right-2.5 w-9 h-9 bg-emerald-500 text-black rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition transform translate-y-1 group-hover:translate-y-0 cursor-pointer"
+                      >
+                        {isAlbumPlaying ? <Pause className="w-4 h-4 fill-black" /> : <Play className="w-4 h-4 fill-black ml-0.5" />}
+                      </button>
+                    </div>
 
-                  <div>
-                    <h4 className={`text-xs font-bold truncate ${isSelected ? 'text-emerald-400' : 'text-white'}`}>
-                      {album.title}
-                    </h4>
-                    <p className="text-[10px] text-zinc-500 font-semibold truncate mt-0.5">
-                      {album.artistName}
-                    </p>
-                    <span className="text-[8px] text-zinc-600 font-mono mt-1 block">
-                      {tracks.length} {tracks.length === 1 ? 'Track' : 'Tracks'}
-                    </span>
+                    <div>
+                      <h4 className={`text-xs font-bold truncate ${isSelected ? 'text-emerald-400' : 'text-white'}`}>
+                        {album.title}
+                      </h4>
+                      <p 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/search?q=${encodeURIComponent(album.artistName)}`);
+                        }}
+                        className="text-[10px] text-zinc-500 font-semibold truncate mt-0.5 hover:underline cursor-pointer hover:text-zinc-300"
+                      >
+                        {album.artistName}
+                      </p>
+                      <span className="text-[8px] text-zinc-600 font-mono mt-1 block">
+                        {tracks.length} {tracks.length === 1 ? 'Track' : 'Tracks'}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Right Panel: Selected Album tracks (7 columns) */}
         <div className="lg:col-span-7 space-y-4">
           {activeAlbum ? (
             <div className="space-y-6">
-              
-              {/* Active Album Detail Display */}
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5 bg-gradient-to-b from-zinc-900/60 to-zinc-950 p-5 rounded-xl border border-zinc-900">
                 <img
                   src={activeAlbum.coverUrl}
@@ -127,7 +176,10 @@ export const AlbumsView: React.FC = () => {
                   <h2 className="text-xl font-bold text-white tracking-tight truncate leading-none">
                     {activeAlbum.title}
                   </h2>
-                  <p className="text-xs text-zinc-400 font-semibold">
+                  <p 
+                    onClick={() => navigate(`/search?q=${encodeURIComponent(activeAlbum.artistName)}`)}
+                    className="text-xs text-zinc-400 font-semibold hover:underline cursor-pointer hover:text-zinc-200"
+                  >
                     By {activeAlbum.artistName}
                   </p>
                   
@@ -152,7 +204,6 @@ export const AlbumsView: React.FC = () => {
                 )}
               </div>
 
-              {/* Songs listing */}
               <div className="bg-[#121214] border border-zinc-850 p-5 rounded-xl space-y-4 shadow">
                 <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
                   <span className="text-[10px] font-bold text-zinc-400 font-mono uppercase tracking-widest">
