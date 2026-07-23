@@ -11,7 +11,6 @@ import {
   Heart, 
   Plus, 
   Disc,
-  Info,
   Sparkles,
   Shuffle,
   Repeat,
@@ -19,7 +18,6 @@ import {
   ListMusic,
   X,
   ChevronDown,
-  ChevronUp,
   Download
 } from 'lucide-react';
 import { Song } from '../types';
@@ -51,19 +49,18 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
   
-  // Player state
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
-  const [skipsRemaining, setSkipsRemaining] = useState(6); // Mock skip limits for Free Tier
+  const [skipsRemaining, setSkipsRemaining] = useState(6);
   const [showSkipAlert, setShowSkipAlert] = useState(false);
   const [streamLogged, setStreamLogged] = useState(false);
   const [showStreamLimitAlert, setShowStreamLimitAlert] = useState(false);
 
   const getStreamLimit = (tier: string) => {
-    if (tier === 'free') return 60;
-    if (tier === 'silver') return 100;
+    if (tier === 'free') return 6;
+    if (tier === 'silver') return 60;
     return Infinity;
   };
 
@@ -73,13 +70,11 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     return count >= getStreamLimit(currentUser.tier);
   };
 
-  // New features state
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'none' | 'all' | 'one'>('all');
   const [queueOpen, setQueueOpen] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  // Dynamic color extraction state & effect
   const [activeColor, setActiveColor] = useState('#10b981');
 
   useEffect(() => {
@@ -105,7 +100,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
           const g = imageData[1];
           const b = imageData[2];
           
-          // Boost saturation & brightness for an elegant, readable accent
           let finalR = r;
           let finalG = g;
           let finalB = b;
@@ -122,7 +116,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
           setActiveColor(`rgb(${finalR}, ${finalG}, ${finalB})`);
         }
       } catch (err) {
-        console.warn("Could not extract dynamic color from artwork:", err);
         setActiveColor('#10b981');
       }
     };
@@ -132,18 +125,15 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     };
   }, [currentTrack]);
 
-  // Sync volume with audio element
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
 
-  // Handle next track with shuffle/repeat logic
   const handleNext = () => {
     if (!currentTrack || songs.length === 0) return;
     
-    // TIER ENFORCEMENT ON SKIPS FOR FREE USERS
     if (currentUser && currentUser.role === 'listener' && currentUser.tier === 'free') {
       if (skipsRemaining <= 0) {
         setShowSkipAlert(true);
@@ -177,7 +167,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     }
   };
 
-  // Handle previous track with shuffle/repeat logic
   const handlePrev = () => {
     if (!currentTrack || songs.length === 0) return;
 
@@ -204,7 +193,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     }
   };
 
-  // Cycle repeat mode cycle: all -> one -> none -> all
   const cycleRepeatMode = () => {
     if (repeatMode === 'all') {
       setRepeatMode('one');
@@ -215,7 +203,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     }
   };
 
-  // Handle source changes and play state
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
@@ -228,7 +215,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     const handleEnded = () => {
       if (repeatMode === 'one') {
         audio.currentTime = 0;
-        audio.play().catch(err => console.log("Replay failed:", err));
+        audio.play().catch(() => {});
       } else {
         handleNext();
       }
@@ -253,8 +240,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
           setShowStreamLimitAlert(true);
           return;
         }
-        audio.play().catch(err => {
-          console.log("Audio play failed or was interrupted:", err);
+        audio.play().catch(() => {
           setIsPlaying(false);
         });
       } else {
@@ -271,7 +257,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
     };
   }, [currentTrack, isPlaying, repeatMode, isShuffle]);
 
-  // Increment stream count once 10 seconds of a song have played (to prevent spamming stream payouts)
   useEffect(() => {
     if (isPlaying && currentTrack && currentTime > 10 && !streamLogged) {
       incrementSongStreams(currentTrack.id);
@@ -329,15 +314,10 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
   return (
     <div style={{ '--active-theme-color': activeColor } as React.CSSProperties}>
-      {/* ======================================= */}
-      /* 1. DESKTOP VIEW STICKY PLAYER BAR       */
-      {/* ======================================= */}
       <div 
         className="desktop-player-only h-24 bg-[#181818] fixed bottom-0 left-0 right-0 z-40 px-6 flex items-center justify-between select-none"
         style={{ borderTop: '2px solid var(--active-theme-color)' }}
       >
-        
-        {/* Track Details (Left Block) */}
         <div className="flex items-center gap-4 w-1/4 min-w-[200px]">
           {currentTrack ? (
             <>
@@ -377,7 +357,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
                 )}
               </div>
 
-              {/* Social & Playlist actions on track */}
               <div className="flex items-center gap-1.5 ml-2">
                 <button
                   onClick={() => toggleFollowArtist(currentTrack.artistName)}
@@ -414,9 +393,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
           )}
         </div>
 
-        {/* Audio Control Panel (Center Block) */}
         <div className="flex flex-col items-center gap-1.5 flex-1 max-w-xl px-4">
-          {/* Playback controls */}
           <div className="flex items-center gap-5">
             <button
               onClick={() => setIsShuffle(!isShuffle)}
@@ -479,7 +456,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </button>
           </div>
 
-          {/* Dynamic seek timeline */}
           <div className="w-full flex items-center gap-3">
             <span className="text-[10px] text-zinc-400 font-mono select-none w-8 text-right">
               {formatTime(currentTime)}
@@ -499,27 +475,23 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </span>
           </div>
 
-          {/* Skip Alert prompt */}
           {showSkipAlert && (
             <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-amber-950/90 border border-amber-800 text-amber-200 text-[11px] px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-bounce">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Skip limit reached (6/hr). <strong>Upgrade to Premium</strong> to skip unlimited songs!</span>
+              <span>Skip limit reached (6/hr). Upgrade to Premium to skip unlimited songs!</span>
             </div>
           )}
 
-          {/* Stream Limit Alert prompt */}
           {showStreamLimitAlert && (
             <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-red-950/95 border border-red-800 text-red-200 text-[11px] px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-bounce z-50">
               <Sparkles className="w-3.5 h-3.5 text-red-400 animate-pulse" />
-              <span>Daily playback limit reached ({getStreamLimit(currentUser.tier)} streams/day). <strong>Upgrade your Subscription</strong> for unlimited streaming!</span>
+              <span>Daily playback limit reached ({getStreamLimit(currentUser.tier)} streams/day). Upgrade your Subscription for unlimited streaming!</span>
               <button onClick={() => setShowStreamLimitAlert(false)} className="ml-2 hover:text-white font-black cursor-pointer font-mono text-xs p-1">×</button>
             </div>
           )}
         </div>
 
-        {/* Utility Sliders (Right Block) */}
         <div className="flex items-center gap-4 w-1/4 justify-end min-w-[200px]">
-          {/* Queue toggle button */}
           <button
             onClick={() => setQueueOpen(!queueOpen)}
             className="p-2 hover:scale-105 transition cursor-pointer"
@@ -529,7 +501,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             <ListMusic className="w-4.5 h-4.5" />
           </button>
 
-          {/* Dynamic Lyrics display action button */}
           <button
             onClick={onLyricsClick}
             className="p-2 hover:text-white hover:scale-105 transition cursor-pointer text-zinc-400 relative"
@@ -542,7 +513,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             )}
           </button>
 
-          {/* Download Music action button - Hidden/Disabled for Free users */}
           {currentUser.tier !== 'free' && (
             <button
               onClick={handleDownload}
@@ -554,7 +524,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </button>
           )}
 
-          {/* Volume controls */}
           <div className="flex items-center gap-2">
             <button
               onClick={toggleMute}
@@ -579,7 +548,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             />
           </div>
 
-          {/* Simple Audio Fidelity Indicator */}
           <div 
             className="border rounded px-2 py-1 text-[8px] font-mono text-zinc-500 select-none flex flex-col items-center transition-colors"
             style={{ borderColor: 'var(--active-theme-color)', opacity: 0.8 }}
@@ -590,12 +558,8 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </span>
           </div>
         </div>
-
       </div>
 
-      {/* ======================================= */}
-      /* 2. SLIDING PLAY QUEUE DRAWER (DESKTOP)   */
-      {/* ======================================= */}
       {queueOpen && (
         <div 
           className="absolute bottom-24 right-6 w-80 bg-[#121214]/95 backdrop-blur border rounded-xl p-4 shadow-2xl z-50 animate-in slide-in-from-bottom-5 duration-200 transition-colors"
@@ -656,9 +620,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
         </div>
       )}
 
-      {/* ======================================= */}
-      /* 3. MINIMAL MOBILE BAR                    */
-      {/* ======================================= */}
       {currentTrack && (
         <div 
           onClick={() => setIsMobileExpanded(true)}
@@ -690,12 +651,8 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
         </div>
       )}
 
-      {/* ======================================= */}
-      /* 4. EXPANDED MOBILE FULLSCREEN OVERLAY   */
-      {/* ======================================= */}
       {isMobileExpanded && currentTrack && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[#0c0c0e] text-white p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => setIsMobileExpanded(false)}
@@ -724,7 +681,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </button>
           </div>
 
-          {/* Large Spinning Vinyl Disc Artwork */}
           <div className="flex-1 flex flex-col items-center justify-center py-4 space-y-6">
             <div 
               className="relative w-56 h-56 md:w-64 md:h-64 mx-auto rounded-full shadow-2xl overflow-hidden flex items-center justify-center bg-black transition-all duration-500"
@@ -747,7 +703,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
               </div>
             </div>
 
-            {/* Title & Artist details */}
             <div className="text-center space-y-1.5 w-full px-4">
               <h3 
                 onClick={() => {
@@ -789,7 +744,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </div>
           </div>
 
-          {/* Synced Lyrics Console display */}
           <div className="p-4 bg-zinc-900/40 rounded-2xl border border-zinc-850/50 space-y-2 mb-6">
             <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
               <span className="text-[9px] font-mono uppercase font-bold tracking-widest flex items-center gap-1 transition-colors" style={{ color: 'var(--active-theme-color)' }}>
@@ -819,7 +773,6 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
             </div>
           </div>
 
-          {/* Playback Controls & Range Sliders */}
           <div className="space-y-5 pb-4">
             <div className="space-y-1">
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500">
